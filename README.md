@@ -24,6 +24,8 @@ This repository can be used to reproduce results of "Word2vec applied to Recomme
 
 ## Usage without Docker
 
+### Install
+
 Install locally gensim following https://radimrehurek.com/gensim/install.html.
 
 `git clone https://github.com/anonymous-authors-recsys/w2v_reco_hyperparameters_matter.git`
