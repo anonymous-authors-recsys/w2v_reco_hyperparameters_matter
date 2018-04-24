@@ -1,5 +1,5 @@
 # Getting Started
-This repository can be used to reproduce results of "Word2vec applied to Recommendation: Hyperparameters Matter".
+This repository can be used to reproduce results of "Word2vec applied to Recommendation: Hyperparameters Matter" paper.
 
 ## Usage with Docker [recommeded]
 
@@ -12,6 +12,8 @@ This repository can be used to reproduce results of "Word2vec applied to Recomme
 `docker build -t w2v_reco_hyperparameters_matter .`
 
 ### Run
+
+To reproduce results in *Table 1: Next Event Prediction, colums Fully optimized SGNS* from paper:
 
 `docker run -ti --name=w2v_reco_hyperparameters_matter_music_1 w2v_reco_hyperparameters_matter:latest /bin/bash -c "python src/main.py --path_data='data/music_1.npy' --p2v=1 --window_size=3 --it=110 --sample=0.00001 --power_alpha=-0.5"`
 
@@ -40,6 +42,8 @@ Copy .npy files from https://drive.google.com/drive/folders/1S-vneh5-egjzjNP7y1C
 
 
 ### Run
+
+To reproduce results in *Table 1: Next Event Prediction, colums Fully optimized SGNS* from paper:
 
 `python src/main.py --path_data='data/music_1.npy' --p2v=1 --window_size=3 --it=110 --sample=0.00001 --power_alpha=-0.5`
 
