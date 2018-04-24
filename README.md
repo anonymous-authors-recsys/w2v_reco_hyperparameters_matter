@@ -28,7 +28,7 @@ To reproduce results in *Table 1: Next Event Prediction*, colums *Fully optimize
 
 ### Install
 
-Install locally gensim following https://radimrehurek.com/gensim/install.html.
+Install gensim locally following https://radimrehurek.com/gensim/install.html.
 
 `git clone https://github.com/anonymous-authors-recsys/w2v_reco_hyperparameters_matter.git`
 
