@@ -7,19 +7,19 @@ This repository can be used to reproduce results of "Word2vec applied to Recomme
 
 `git clone https://github.com/anonymous-authors-recsys/w2v_reco_hyperparameters_matter.git`
 
-`cd recsys_submission_2018`
+`cd w2v_reco_hyperparameters_matter`
 
-`docker build -t recsys_submission_2018 .`
+`docker build -t w2v_reco_hyperparameters_matter .`
 
 ### Run
 
-`docker run -ti --rm --name=recsys_submission_2018_music_1 recsys_submission_2018:latest /bin/bash -c "python src/main.py --path_data='data/music_1.npy' --p2v=1 --window_size=3 --it=110 --sample=0.00001 --power_alpha=-0.5"`
+`docker run -ti --rm --name=w2v_reco_hyperparameters_matter_music_1 recsys_submission_2018:latest /bin/bash -c "python src/main.py --path_data='data/music_1.npy' --p2v=1 --window_size=3 --it=110 --sample=0.00001 --power_alpha=-0.5"`
 
-`docker run -ti --rm --name=recsys_submission_2018_music_2 recsys_submission_2018:latest /bin/bash -c "python src/main.py --path_data='data/music_2.npy' --p2v=1 --window_size=3 --it=130 --sample=0.00001 --power_alpha=-0.5"`
+`docker run -ti --rm --name=w2v_reco_hyperparameters_matter_music_2 recsys_submission_2018:latest /bin/bash -c "python src/main.py --path_data='data/music_2.npy' --p2v=1 --window_size=3 --it=130 --sample=0.00001 --power_alpha=-0.5"`
 
-`docker run -ti --rm --name=recsys_submission_2018_ecommerce recsys_submission_2018:latest /bin/bash -c "python src/main.py --path_data='data/ecommerce_sessions.npy' --p2v=1 --window_size=3 --it=140 --sample=0.001 --power_alpha=1"`
+`docker run -ti --rm --name=w2v_reco_hyperparameters_matter_ecommerce recsys_submission_2018:latest /bin/bash -c "python src/main.py --path_data='data/ecommerce_sessions.npy' --p2v=1 --window_size=3 --it=140 --sample=0.001 --power_alpha=1"`
 
-`docker run -ti --rm --name=recsys_submission_2018_kosarak recsys_submission_2018:latest /bin/bash -c "python src/main.py --path_data='data/kosarak_sessions.npy' --p2v=1 --window_size=7 --it=150 --sample=0.00001 --power_alpha=-1"`
+`docker run -ti --rm --name=w2v_reco_hyperparameters_matter_kosarak recsys_submission_2018:latest /bin/bash -c "python src/main.py --path_data='data/kosarak_sessions.npy' --p2v=1 --window_size=7 --it=150 --sample=0.00001 --power_alpha=-1"`
 
 
 ## Usage without Docker
