@@ -13,13 +13,13 @@ This repository can be used to reproduce results of "Word2vec applied to Recomme
 
 ### Run
 
-`docker run -ti --rm --name=w2v_reco_hyperparameters_matter_music_1 w2v_reco_hyperparameters_matter:latest /bin/bash -c "python src/main.py --path_data='data/music_1.npy' --p2v=1 --window_size=3 --it=110 --sample=0.00001 --power_alpha=-0.5"`
+`docker run -ti --name=w2v_reco_hyperparameters_matter_music_1 w2v_reco_hyperparameters_matter:latest /bin/bash -c "python src/main.py --path_data='data/music_1.npy' --p2v=1 --window_size=3 --it=110 --sample=0.00001 --power_alpha=-0.5"`
 
-`docker run -ti --rm --name=w2v_reco_hyperparameters_matter_music_2 w2v_reco_hyperparameters_matter:latest /bin/bash -c "python src/main.py --path_data='data/music_2.npy' --p2v=1 --window_size=3 --it=130 --sample=0.00001 --power_alpha=-0.5"`
+`docker run -ti --name=w2v_reco_hyperparameters_matter_music_2 w2v_reco_hyperparameters_matter:latest /bin/bash -c "python src/main.py --path_data='data/music_2.npy' --p2v=1 --window_size=3 --it=130 --sample=0.00001 --power_alpha=-0.5"`
 
-`docker run -ti --rm --name=w2v_reco_hyperparameters_matter_ecommerce w2v_reco_hyperparameters_matter:latest /bin/bash -c "python src/main.py --path_data='data/ecommerce_sessions.npy' --p2v=1 --window_size=3 --it=140 --sample=0.001 --power_alpha=1"`
+`docker run -ti --name=w2v_reco_hyperparameters_matter_ecommerce w2v_reco_hyperparameters_matter:latest /bin/bash -c "python src/main.py --path_data='data/ecommerce_sessions.npy' --p2v=1 --window_size=3 --it=140 --sample=0.001 --power_alpha=1"`
 
-`docker run -ti --rm --name=w2v_reco_hyperparameters_matter_kosarak w2v_reco_hyperparameters_matter:latest /bin/bash -c "python src/main.py --path_data='data/kosarak_sessions.npy' --p2v=1 --window_size=7 --it=150 --sample=0.00001 --power_alpha=-1"`
+`docker run -ti --name=w2v_reco_hyperparameters_matter_kosarak w2v_reco_hyperparameters_matter:latest /bin/bash -c "python src/main.py --path_data='data/kosarak_sessions.npy' --p2v=1 --window_size=7 --it=150 --sample=0.00001 --power_alpha=-1"`
 
 
 ## Usage without Docker
