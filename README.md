@@ -28,7 +28,9 @@ This repository can be used to reproduce results of "Word2vec applied to Recomme
 
 Install locally gensim following https://radimrehurek.com/gensim/install.html.
 
-Replace the file gensim/models/word2vec.py in your local gensim installation folder by THIS_GITHUB_REPO_URL/word2vec.py.
+Replace the file gensim/models/word2vec.py in your local gensim installation folder by word2vec.py.
+
+Copy .npy files from https://drive.google.com/drive/folders/1S-vneh5-egjzjNP7y1ChdevOjukQopqX to the data folder.
 
 ### Run
 
