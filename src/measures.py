@@ -4,8 +4,6 @@ import warnings
 warnings.filterwarnings('ignore')
 
 
-# Define Normalized Discounted Cumulative Gain (NDCG) metric
-# We don't need to define a function for Hit Ratio (HR) metric, since it is very simple.
 def dcg_at_k(r, k, method=0):
     """Score is discounted cumulative gain (dcg)
     Relevance is positive real values.  Can use binary
