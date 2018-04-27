@@ -63,17 +63,18 @@ def evaluation(train, test,
     print "Computing scores..."
     for pair_items in tqdm(test):
         emb_0 = embedding[mapping[pair_items[0]]].reshape(1, -1)
-        emb_neighbors = neigh.kneighbors(emb_0, k+1)[1].flatten()
+        # get neighbors
+        emb_neighbors = neigh.kneighbors(emb_0, k+1)[1].flatten()[1:]
         neighbors = [mapping_back[x] for x in emb_neighbors]
-        # HR@k
         if str(pair_items[1]) in neighbors:
+            # HR@k
             hrk_score += 1/k
-        # NDCG@k
-        # In our case only one item in the retrived list can be relevant,
-        # so in particular the ideal ndcg is 1 and ndcg_at_k = 1/log_2(1+j)
-        # where j is the position of the relevant item in the list.
-        index_match = (np.where(str(pair_items[1]) == np.array(neighbors)))[0][0]
-        ndcg_score += 1/np.log2(np.arange(2, k+2))[index_match]
+            # NDCG@k
+            # In our case only one item in the retrived list can be relevant,
+            # so in particular the ideal ndcg is 1 and ndcg_at_k = 1/log_2(1+j)
+            # where j is the position of the relevant item in the list.
+            index_match = (np.where(str(pair_items[1]) == np.array(neighbors)))[0][0]
+            ndcg_score += 1/np.log2(np.arange(2, k+2))[index_match]
     hrk_score = hrk_score / len(test)
     ndcg_score = ndcg_score / len(test)
 
