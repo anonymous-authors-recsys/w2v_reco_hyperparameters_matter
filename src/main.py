@@ -19,7 +19,6 @@ import numpy as np
 from gensim.models.word2vec import Word2Vec
 from sklearn.neighbors import NearestNeighbors
 
-from measures import ndcg_at_k
 from data import (SEED, get_data)
 
 logger = logging.getLogger(__name__)
@@ -70,11 +69,11 @@ def evaluation(train, test,
         if str(pair_items[1]) in neighbors:
             hrk_score += 1/k
         # NDCG@k
-        match = np.where(str(pair_items[1]) == np.array(neighbors))
-        if len(match) > 0:
-            r = np.zeros(k+1)
-            r[match[0]] = 1
-            ndcg_score += ndcg_at_k(r, len(r), method=0)
+        # In our case only one item in the retrived list can be relevant,
+        # so in particular the ideal ndcg is 1 and ndcg_at_k = 1/log_2(1+j)
+        # where j is the position of the relevant item in the list.
+        index_match = (np.where(str(pair_items[1]) == np.array(neighbors)))[0][0]
+        ndcg_score += 1/np.log2(np.arange(2, k+2))[index_match]
     hrk_score = hrk_score / len(test)
     ndcg_score = ndcg_score / len(test)
 
