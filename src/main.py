@@ -63,11 +63,15 @@ def evaluation(train, test,
     print "Computing scores..."
     for pair_items in tqdm(test):
         emb_0 = embedding[mapping[pair_items[0]]].reshape(1, -1)
+        
+        # If the next item and the query item are identical, we consider that the prediction is correct.
         if str(pair_items[1]) == str(pair_items[0]):
              # HR@k
             hrk_score += 1/k
             # NDCG@k
             ndcg_score += 1
+            
+        # If the next item and the query item are different, we compute the 10 nearest neighbour and compute the HR@k and NDCG@k.    
         else:
              # get neighbors
              emb_neighbors = neigh.kneighbors(emb_0, k+1)[1].flatten()[1:]
@@ -76,7 +80,7 @@ def evaluation(train, test,
                  # HR@k
                  hrk_score += 1/k
                  # NDCG@k
-                 # In our case only one item in the retrived list can be relevant,
+                 # In our case only one item in the retrieved list can be relevant,
                  # so in particular the ideal ndcg is 1 and ndcg_at_k = 1/log_2(1+j)
                  # where j is the position of the relevant item in the list.
                  index_match = (np.where(str(pair_items[1]) == np.array(neighbors)))[0][0]
