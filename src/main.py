@@ -16,25 +16,28 @@ from tqdm import tqdm
 from prettytable import PrettyTable
 
 import numpy as np
+import pandas as pd
+import scipy as sp
+import scipy.stats
 from gensim.models.word2vec import Word2Vec
 from sklearn.neighbors import NearestNeighbors
-
 from data import (SEED, get_data)
 
 logger = logging.getLogger(__name__)
 
 
-def evaluation(train, test,
-               size_embedding, window_size, min_count, workers, it, sample, neg_sample, power_alpha, k):
+def mean_confidence_interval(data, confidence=0.95):
+    """ Standard t-test over mean."""
+    a = 1.0*np.array(data)
+    n = len(a)
+    m, se = np.mean(a), scipy.stats.sem(a)
+    h = se * sp.stats.t._ppf((1+confidence)/2., n-1)
+    return m, m-h, m+h, h
+
+
+def run(train, test,
+        size_embedding, window_size, min_count, workers, it, sample, neg_sample, power_alpha, k):
     """
-    Split the raw sessions into training sessions for p2v and mp2v and a common test set.
-
-        train: list
-        List (of length nb_sessions) of lists of strings ['item_0', ..., 'item_(n-1)'].
-
-        test: list
-        List (of length nb_sessions) of lists of strings ['item_(n-1)','item_n'].
-
     """
 
     # Training modified Word2Vec model.
@@ -63,34 +66,33 @@ def evaluation(train, test,
     print "Computing scores..."
     for pair_items in tqdm(test):
         emb_0 = embedding[mapping[pair_items[0]]].reshape(1, -1)
-        
         # If the next item and the query item are identical, we consider that the prediction is correct.
         if str(pair_items[1]) == str(pair_items[0]):
              # HR@k
             hrk_score += 1/k
             # NDCG@k
             ndcg_score += 1
-            
-        # If the next item and the query item are different, we compute the 10 nearest neighbour and compute the HR@k and NDCG@k.    
+        # If the next item and the query item are different,
+        # we compute the 10 nearest neighbour and compute the HR@k and NDCG@k.
         else:
-             # get neighbors
-             emb_neighbors = neigh.kneighbors(emb_0, k+1)[1].flatten()[1:]
-             neighbors = [mapping_back[x] for x in emb_neighbors]
-             if str(pair_items[1]) in neighbors:
-                 # HR@k
-                 hrk_score += 1/k
-                 # NDCG@k
-                 # In our case only one item in the retrieved list can be relevant,
-                 # so in particular the ideal ndcg is 1 and ndcg_at_k = 1/log_2(1+j)
-                 # where j is the position of the relevant item in the list.
-                 index_match = (np.where(str(pair_items[1]) == np.array(neighbors)))[0][0]
-                 ndcg_score += 1/np.log2(np.arange(2, k+2))[index_match]
+            # get neighbors
+            emb_neighbors = neigh.kneighbors(emb_0, k+1)[1].flatten()[1:]
+            neighbors = [mapping_back[x] for x in emb_neighbors]
+            if str(pair_items[1]) in neighbors:
+                # HR@k
+                hrk_score += 1/k
+                # NDCG@k
+                # In our case only one item in the retrieved list can be relevant,
+                # so in particular the ideal ndcg is 1 and ndcg_at_k = 1/log_2(1+j)
+                # where j is the position of the relevant item in the list.
+                index_match = (np.where(str(pair_items[1]) == np.array(neighbors)))[0][0]
+                ndcg_score += 1/np.log2(np.arange(2, k+2))[index_match]
     hrk_score = hrk_score / len(test)
     ndcg_score = ndcg_score / len(test)
 
     print "took %1.2f minutes." % ((time.time()-t)/60.)
 
-    return {"k": k, "ndcg_score": ndcg_score, "hrk_score": hrk_score}
+    return {'HR@%i' % k: 1000*hrk_score, 'NDCG@%i' % k: ndcg_score}
 
 if __name__ == "__main__":
 
@@ -109,42 +111,48 @@ if __name__ == "__main__":
     parser.add_argument('--neg_sample', dest='neg_sample', default=5, type=int)
     parser.add_argument('--power_alpha', dest='power_alpha', default=-0.5, type=float)
     parser.add_argument("--it_conf", help="Number of iterations for confidence intervals", default=10, type=int)
-    parser.add_argument('--k', dest='k', default=10, type=int)
+    parser.add_argument('--k', dest='k',  help="Number of neighbors in nep evaluation", default=10, type=int)
+    parser.add_argument('--output', help="Path to folder were to save results.", dest='output', default="", type=str)
     args = parser.parse_args()
 
     train_p2v, train_mp2v, validation, test = get_data(args.path_data)
 
-    # Create table with results
-    scores = {}
-    t = PrettyTable(['Model', 'HR@10', 'NDCG@10'])
-    name = os.path.split(args.path_data)[-1].split(".")[0]
-    # Run to compute confidence interval
+    model_name = '{}_{}_{}_{}_{}_{}'.format(
+        "Prod2vec" if args.p2v else "MetaProd2vec",
+        os.path.split(args.path_data)[-1].split(".")[0],
+        args.window_size,
+        args.it,
+        args.sample,
+        args.power_alpha)
+
+    # Several runs to compute confidence interval
+    results = []
     for i in range(args.it_conf):
         if args.p2v:
             logger.info("Evaluating Word2Vec model...")
-            results = evaluation(train_p2v, test,
-                                 args.size_embedding, args.window_size, args.min_count, args.workers, args.it,
-                                 args.sample, args.neg_sample, args.power_alpha, args.k)
-            model_name = 'Prod2vec_{}_{}_{}_{}_{}_run_{}'.format(
-                name,
-                args.window_size,
-                args.it,
-                args.sample,
-                args.power_alpha,
-                i+1
-            )
+            result = run(train_p2v, test,
+                         args.size_embedding, args.window_size, args.min_count, args.workers, args.it,
+                         args.sample, args.neg_sample, args.power_alpha, args.k)
         else:
             logger.info("Evaluating MetaProd2vec model...")
-            results = evaluation(train_mp2v, test,
-                                 args.size_embedding, 2*args.window_size, args.min_count, args.workers, args.it,
-                                 args.sample, args.neg_sample, args.power_alpha, args.k)
-            model_name = 'MetaProd2vec_{}_{}_{}_{}_{}_run_{}'.format(
-                name,
-                str(args.window_size),
-                str(args.it),
-                str(args.sample),
-                str(args.power_alpha),
-                str(i+1)
-            )
-        t.add_row([model_name, 1000*results['hrk_score'], results['ndcg_score']])
-    print t.get_string(sortby='HR@10', reversesort=True)
+            result = run(train_mp2v, test,
+                         args.size_embedding, 2*args.window_size, args.min_count, args.workers, args.it,
+                         args.sample, args.neg_sample, args.power_alpha, args.k)
+        result.update({'Model': model_name, 'results': 'run_{}'.format(i+1)})
+        results.append(result)
+
+    hr = 'HR@%i' % args.k
+    ndcg = 'NDCG@%i' % args.k
+    df = pd.DataFrame.from_records(results, columns=['Model', 'results', hr, ndcg])
+    hr_m, _, _, hr_h = mean_confidence_interval(df[hr].tolist(), confidence=0.95)
+    ndcg_m, _, _, ndcg_h = mean_confidence_interval(df[ndcg].tolist(), confidence=0.95)
+    df.loc[len(df)] = [model_name, "mean", hr_m, ndcg_m]
+    df.loc[len(df)] = [model_name, "95%_conf_int", hr_h, ndcg_h]
+
+    table = PrettyTable(list(df.columns))
+    for row in df.itertuples():
+        table.add_row(row[1:])
+    print table.get_string(sortby='results', reversesort=True)
+
+    if args.output:
+        df.to_csv(os.path.join(args.output, model_name+".csv"), index=False)
