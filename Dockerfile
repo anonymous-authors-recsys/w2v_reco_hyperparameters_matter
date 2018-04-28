@@ -32,7 +32,6 @@ COPY word2vec.py /root/anaconda/lib/python2.7/site-packages/gensim/models/word2v
 
 # Copy src python code
 COPY src/data.py /srv/workspace/src/data.py
-COPY src/measures.py /srv/workspace/src/measures.py
 COPY src/main.py /srv/workspace/src/main.py
 # and add src to python path.
 ENV PYTHONPATH=$PYTHONPATH:/srv/workspace/src
@@ -40,6 +39,8 @@ ENV PYTHONPATH=$PYTHONPATH:/srv/workspace/src
 # Get data from drive
 RUN mkdir -p /srv/workspace/data
 RUN /bin/bash /srv/workspace/download-script.sh
+RUN rm download-script.sh
+RUN rm cookie
 
 # Install other python packages
 RUN pip install tqdm
