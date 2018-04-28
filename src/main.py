@@ -101,7 +101,7 @@ if __name__ == "__main__":
 
     parser = argparse.ArgumentParser()
     parser.add_argument('--path_data', dest='path_data', required=True, type=str)
-    parser.add_argument('--p2v', help="Evaluate prod2vec", dest='p2v', default=True, type=bool)
+    parser.add_argument('--p2v', help="Evaluate prod2vec", dest='p2v', default=1, type=int)
     parser.add_argument('--size_embedding', dest='size_embedding', default=50, type=int)
     parser.add_argument('--window_size', dest='window_size', default=3, type=int)
     parser.add_argument('--min_count', dest='min_count', default=1, type=int)
