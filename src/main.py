@@ -123,7 +123,7 @@ if __name__ == "__main__":
     # Name model.
     model_name = '{}_{}_{}_{}_{}_{}_{}'.format(
         "Prod2vec" if args.p2v else "MetaProd2vec",
-        "cold_start" if args.cold_start >= 0 else "",
+        "cold_start_{}".format(args.cold_start) if args.cold_start >= 0 else "",
         os.path.split(args.path_data)[-1].split(".")[0],
         args.window_size,
         args.it,
