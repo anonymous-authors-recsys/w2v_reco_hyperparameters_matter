@@ -1,8 +1,24 @@
 import numpy as np
+import pandas as pd
 
 # set random seed for random and numpy packages
 SEED = 4
 np.random.seed(SEED)
+
+
+def cold_start(train, test, f):
+
+    # "count" is a dictionnary where keys are index of test pairs
+    # and values are the number of occurrences of each test pair in the training set
+    train_pairs = np.array(["_".join((x[i], x[i+1])) for x in train for i in range(len(x)-1)])
+    hist = pd.DataFrame(train_pairs, columns=["train_pairs"]).groupby("train_pairs").size().to_dict()
+    count = {j: hist["_".join(pair)] if "_".join(pair) in hist else 0 for j, pair in enumerate(test)}
+
+    # Using "count", we construct the test sets for the cold start scenario by keeping
+    # only the test samples that appeared less or equal than f times
+    test_cold_start = np.array(test)[[x for x in count.keys() if count[x] <= f]].tolist()
+
+    return test_cold_start
 
 
 def get_data(path_data):
