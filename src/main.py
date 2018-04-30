@@ -21,14 +21,14 @@ import scipy as sp
 import scipy.stats
 from gensim.models.word2vec import Word2Vec
 from sklearn.neighbors import NearestNeighbors
-from data import (SEED, get_data)
+from data import (SEED, get_data, cold_start)
 
 logger = logging.getLogger(__name__)
 
 
 def mean_confidence_interval(data, confidence=0.95):
     """ Standard t-test over mean."""
-    a = 1.0*np.array(data)
+    a = 1.0 * np.array(data)
     n = len(a)
     m, se = np.mean(a), scipy.stats.sem(a)
     h = se * sp.stats.t._ppf((1+confidence)/2., n-1)
@@ -41,11 +41,9 @@ def run(train, test,
     """
 
     # Training modified Word2Vec model.
-    t = time.time()
     model = Word2Vec(train, size=size_embedding,
                      window=window_size, min_count=min_count, workers=workers, sg=1, iter=it, sample=sample,
                      negative=neg_sample, power_alpha=power_alpha)
-    print "took %1.2f minutes." % ((time.time()-t)/60.)
 
     # Create a matrix filled with embeddings of all items considered.
     if model.wv.vocab.keys()[0].startswith('track') or model.wv.vocab.keys()[0].startswith('artist'):
@@ -111,39 +109,39 @@ if __name__ == "__main__":
     parser.add_argument('--neg_sample', dest='neg_sample', default=5, type=int)
     parser.add_argument('--power_alpha', dest='power_alpha', default=-0.5, type=float)
     parser.add_argument("--it_conf", help="Number of iterations for confidence intervals", default=10, type=int)
+    parser.add_argument('--cold_start', dest='cold_start',  help="Evaluate on cold start", default=-1, type=int)
     parser.add_argument('--k', dest='k',  help="Number of neighbors in nep evaluation", default=10, type=int)
     parser.add_argument('--output', help="Path to folder were to save results.", dest='output', default="", type=str)
     args = parser.parse_args()
 
-    train_p2v, train_mp2v, validation, test = get_data(args.path_data)
+    # Get data.
+    logger.info("getting data...")
+    train_p2v, train_mp2v, _, test = get_data(args.path_data)
+    train = train_p2v if args.p2v else train_mp2v
+    test = cold_start(train, test, args.cold_start) if args.cold_start >= 0 else test
 
-    model_name = '{}_{}_{}_{}_{}_{}'.format(
+    # Name model.
+    model_name = '{}_{}_{}_{}_{}_{}_{}'.format(
         "Prod2vec" if args.p2v else "MetaProd2vec",
+        "cold_start" if args.cold_start >= 0 else "",
         os.path.split(args.path_data)[-1].split(".")[0],
         args.window_size,
         args.it,
         args.sample,
         args.power_alpha)
 
-    # Several runs to compute confidence interval
+    # Several runs to compute confidence interval.
     results = []
     for i in range(args.it_conf):
-        if args.p2v:
-            logger.info("Evaluating Word2Vec model...")
-            result = run(train_p2v, test,
-                         args.size_embedding, args.window_size, args.min_count, args.workers, args.it,
-                         args.sample, args.neg_sample, args.power_alpha, args.k)
-        else:
-            logger.info("Evaluating MetaProd2vec model...")
-            result = run(train_mp2v, test,
-                         args.size_embedding, 2*args.window_size, args.min_count, args.workers, args.it,
-                         args.sample, args.neg_sample, args.power_alpha, args.k)
-        result.update({'Model': model_name, 'results': 'run_{}'.format(i+1)})
+        result = run(train, test,
+                     args.size_embedding, args.window_size, args.min_count, args.workers, args.it,
+                     args.sample, args.neg_sample, args.power_alpha, args.k)
+        result.update({'Model': model_name, 'result': 'run_{}'.format(i+1)})
         results.append(result)
 
     hr = 'HR@%i' % args.k
     ndcg = 'NDCG@%i' % args.k
-    df = pd.DataFrame.from_records(results, columns=['Model', 'results', hr, ndcg])
+    df = pd.DataFrame.from_records(results, columns=['Model', 'result', hr, ndcg])
     hr_m, _, _, hr_h = mean_confidence_interval(df[hr].tolist(), confidence=0.95)
     ndcg_m, _, _, ndcg_h = mean_confidence_interval(df[ndcg].tolist(), confidence=0.95)
     df.loc[len(df)] = [model_name, "mean", hr_m, ndcg_m]
@@ -152,7 +150,7 @@ if __name__ == "__main__":
     table = PrettyTable(list(df.columns))
     for row in df.itertuples():
         table.add_row(row[1:])
-    print table.get_string(sortby='results', reversesort=True)
+    print table.get_string(sortby='result', reversesort=True)
 
     if args.output:
         df.to_csv(os.path.join(args.output, model_name+".csv"), index=False)
