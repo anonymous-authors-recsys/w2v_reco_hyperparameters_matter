@@ -118,7 +118,7 @@ if __name__ == "__main__":
     logger.info("getting data...")
     train_p2v, train_mp2v, _, test = get_data(args.path_data)
     train = train_p2v if args.p2v else train_mp2v
-    test = cold_start(train, test, args.cold_start) if args.cold_start >= 0 else test
+    test = cold_start(train_p2v, test, args.cold_start) if args.cold_start >= 0 else test
 
     # Name model.
     model_name = '{}_{}_{}_{}_{}_{}_{}'.format(
